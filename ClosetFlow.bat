@@ -1,5 +1,5 @@
 @echo off
-:: GVP — Gestor de Vestuário Pessoal
+:: ClosetFlor — Gestor de Vestuário Pessoal
 :: Launcher para Windows
 
 setlocal
