@@ -1,5 +1,5 @@
 #!/bin/bash
-# GVP — Gestor de Vestuário Pessoal
+# ClosetFlow — Gestor de Vestuário Pessoal
 # Launcher para Linux/macOS
 
 DIR="$(cd "$(dirname "$0")" && pwd)"
