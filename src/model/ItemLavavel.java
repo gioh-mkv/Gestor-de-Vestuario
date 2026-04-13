@@ -6,15 +6,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Representa uma roupa íntima.
- * Pode ser lavada, mas não emprestada.
+ * Classe base abstrata para itens que podem ser lavados.
+ * Elimina duplicação de código entre Camisa, Calca e RoupaIntima.
  */
-public class RoupaIntima extends Item implements ILavavel {
-    private List<LocalDate> lavagens;
+public abstract class ItemLavavel extends ItemEmprestavel implements ILavavel {
+    protected List<LocalDate> lavagens;
 
-    public RoupaIntima(String id, String nome, String cor, String tamanho,
-                       String lojaOrigem, Conservacao conservacao) {
-        super(id, nome, cor, tamanho, lojaOrigem, conservacao, TipoItem.ROUPA_INTIMA);
+    public ItemLavavel(String id, String nome, String cor, String tamanho,
+                       String lojaOrigem, Conservacao conservacao, TipoItem tipo) {
+        super(id, nome, cor, tamanho, lojaOrigem, conservacao, tipo);
         this.lavagens = new ArrayList<>();
     }
 

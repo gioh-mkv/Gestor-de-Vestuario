@@ -5,47 +5,38 @@ import javax.swing.*;
 import java.awt.*;
 
 public class MainFrame extends JFrame {
-    private GestorVestuario gestor;
-    private JTabbedPane tabbedPane;
-    
+
+    private final GestorVestuario gestor;
+
     public MainFrame() {
         this.gestor = new GestorVestuario();
-        initializeComponents();
-        setupLayout();
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setTitle("GVP - Gestor de Vestuário Pessoal");
-        setSize(1000, 700);
+        setTitle("GVP — Gestor de Vestuário Pessoal");
+        setSize(1050, 720);
+        setMinimumSize(new Dimension(800, 550));
         setLocationRelativeTo(null);
-    }
-    
-    private void initializeComponents() {
-        tabbedPane = new JTabbedPane();
-        
-        // abas
-        tabbedPane.addTab("Itens", new ItemPanel(gestor));
-        tabbedPane.addTab("Looks", new LookPanel(gestor));
-        tabbedPane.addTab("Empréstimos", new EmprestimoPanel(gestor));
-        tabbedPane.addTab("Lavagens", new LavagemPanel(gestor));
-        tabbedPane.addTab("Estatísticas", new EstatisticaPanel(gestor));
-    }
-    
-    private void setupLayout() {
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        JTabbedPane tabs = new JTabbedPane();
+        tabs.addTab("👕 Itens",       new ItemPanel(gestor));
+        tabs.addTab("👔 Looks",       new LookPanel(gestor));
+        tabs.addTab("🤝 Empréstimos", new EmprestimoPanel(gestor));
+        tabs.addTab("🧺 Lavagens",    new LavagemPanel(gestor));
+        tabs.addTab("📊 Estatísticas", new EstatisticaPanel(gestor));
+
         setLayout(new BorderLayout());
-        add(tabbedPane, BorderLayout.CENTER);
-        
-        // Barra de status
-        JLabel statusBar = new JLabel("GVP - Sistema de Gestão de Vestuário Pessoal");
-        statusBar.setBorder(BorderFactory.createLoweredBevelBorder());
-        add(statusBar, BorderLayout.SOUTH);
+        add(tabs, BorderLayout.CENTER);
+
+        JLabel status = new JLabel("  GVP v1.1 — Gestor de Vestuário Pessoal");
+        status.setBorder(BorderFactory.createLoweredBevelBorder());
+        status.setFont(status.getFont().deriveFont(11f));
+        add(status, BorderLayout.SOUTH);
     }
-    
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             try {
-            	UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); //deixa no tema do SO
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            } catch (Exception ignored) {}
             new MainFrame().setVisible(true);
         });
     }

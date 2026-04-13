@@ -1,0 +1,29 @@
+# Arquivos compilados
+bin/
+build/
+*.class
+
+# JARs gerados (exceto dependências)
+*.jar
+!classpath/
+
+# Dados do usuário (gerados em tempo de execução)
+dados/
+itens.json
+looks.json
+lavagens.json
+
+# IDEs
+.classpath
+.project
+.settings/
+*.iml
+.idea/
+*.iws
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

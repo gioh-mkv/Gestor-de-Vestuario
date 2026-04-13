@@ -9,250 +9,202 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 public class LookPanel extends JPanel {
-    private GestorVestuario gestor;
+
+    private final GestorVestuario gestor;
     private JTable tabelaLooks;
     private DefaultTableModel modeloTabela;
     private JTextField txtNomeLook;
     private JList<Item> listaItensDisponiveis;
     private DefaultListModel<Item> modeloListaItens;
     private Look lookSelecionado;
-    
+
     public LookPanel(GestorVestuario gestor) {
         this.gestor = gestor;
         initializeComponents();
         setupLayout();
         carregarDados();
     }
-    
+
     private void initializeComponents() {
-        // Tabela de looks
         String[] colunas = {"ID", "Nome", "Qtd Itens", "Utilizações"};
         modeloTabela = new DefaultTableModel(colunas, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
+            @Override public boolean isCellEditable(int r, int c) { return false; }
         };
         tabelaLooks = new JTable(modeloTabela);
         tabelaLooks.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        // Oculta coluna ID
+        tabelaLooks.getColumnModel().getColumn(0).setMinWidth(0);
+        tabelaLooks.getColumnModel().getColumn(0).setMaxWidth(0);
+        tabelaLooks.getColumnModel().getColumn(0).setWidth(0);
         tabelaLooks.getSelectionModel().addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) {
-                selecionarLook();
-            }
+            if (!e.getValueIsAdjusting()) selecionarLook();
         });
-        
-        // Campo nome do look
+
         txtNomeLook = new JTextField(20);
-        
-        // Lista de itens disponíveis
         modeloListaItens = new DefaultListModel<>();
         listaItensDisponiveis = new JList<>(modeloListaItens);
         listaItensDisponiveis.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
     }
-    
+
     private void setupLayout() {
         setLayout(new BorderLayout());
-        
-        // Painel superior - Criação de look
+
+        // Painel esquerdo — criação
         JPanel painelCriacao = new JPanel(new BorderLayout());
         painelCriacao.setBorder(BorderFactory.createTitledBorder("Criar/Editar Look"));
-        
-        JPanel painelNome = new JPanel(new FlowLayout());
+
+        JPanel painelNome = new JPanel(new FlowLayout(FlowLayout.LEFT));
         painelNome.add(new JLabel("Nome do Look:"));
         painelNome.add(txtNomeLook);
-        
-        JPanel painelBotoesCriacao = new JPanel(new FlowLayout());
-        painelBotoesCriacao.add(new JButton("Criar Look") {{ 
-            addActionListener(e -> criarLook()); 
-        }});
-        painelBotoesCriacao.add(new JButton("Adicionar Itens") {{ 
-            addActionListener(e -> adicionarItensAoLook()); 
-        }});
-        painelBotoesCriacao.add(new JButton("Registrar Uso") {{ 
-            addActionListener(e -> registrarUsoLook()); 
-        }});
-        
+
+        JButton btnCriar    = new JButton("Criar Look");
+        JButton btnAddItens = new JButton("Adicionar Itens ao Look");
+        JButton btnUso      = new JButton("Registrar Uso");
+
+        btnCriar.addActionListener(e -> criarLook());
+        btnAddItens.addActionListener(e -> adicionarItensAoLook());
+        btnUso.addActionListener(e -> registrarUsoLook());
+
+        JPanel painelBotoesCriacao = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        painelBotoesCriacao.add(btnCriar);
+        painelBotoesCriacao.add(btnAddItens);
+        painelBotoesCriacao.add(btnUso);
+
         painelCriacao.add(painelNome, BorderLayout.NORTH);
         painelCriacao.add(new JScrollPane(listaItensDisponiveis), BorderLayout.CENTER);
         painelCriacao.add(painelBotoesCriacao, BorderLayout.SOUTH);
-        
-        // Painel central - Lista de looks
+
+        // Painel direito — lista de looks
         JPanel painelLooks = new JPanel(new BorderLayout());
         painelLooks.setBorder(BorderFactory.createTitledBorder("Looks Criados"));
         painelLooks.add(new JScrollPane(tabelaLooks), BorderLayout.CENTER);
-        
-        JPanel painelBotoesLook = new JPanel(new FlowLayout());
-        painelBotoesLook.add(new JButton("Remover Look") {{ 
-            addActionListener(e -> removerLook()); 
-        }});
-        painelBotoesLook.add(new JButton("Ver Detalhes") {{ 
-            addActionListener(e -> verDetalhesLook()); 
-        }});
-        painelBotoesLook.add(new JButton("Atualizar") {{ 
-            addActionListener(e -> carregarDados()); 
-        }});
-        
+
+        JButton btnRemover    = new JButton("Remover Look");
+        JButton btnDetalhes   = new JButton("Ver Detalhes");
+        JButton btnAtualizar  = new JButton("Atualizar");
+
+        btnRemover.addActionListener(e -> removerLook());
+        btnDetalhes.addActionListener(e -> verDetalhesLook());
+        btnAtualizar.addActionListener(e -> carregarDados());
+
+        JPanel painelBotoesLook = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        painelBotoesLook.add(btnRemover);
+        painelBotoesLook.add(btnDetalhes);
+        painelBotoesLook.add(btnAtualizar);
         painelLooks.add(painelBotoesLook, BorderLayout.SOUTH);
-        
-        // Layout principal
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, painelCriacao, painelLooks);
-        splitPane.setDividerLocation(400);
-        add(splitPane, BorderLayout.CENTER);
+
+        JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, painelCriacao, painelLooks);
+        split.setDividerLocation(400);
+        add(split, BorderLayout.CENTER);
     }
-    
+
     private void criarLook() {
         String nome = txtNomeLook.getText().trim();
         if (nome.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Nome do look é obrigatório!");
             return;
         }
-        
-        String id = UUID.randomUUID().toString();
-        Look novoLook = new Look(id, nome);
-        gestor.adicionarLook(novoLook);
-        
+        gestor.adicionarLook(new Look(UUID.randomUUID().toString(), nome));
         txtNomeLook.setText("");
         carregarLooks();
         JOptionPane.showMessageDialog(this, "Look criado com sucesso!");
     }
-    
+
     private void adicionarItensAoLook() {
         if (lookSelecionado == null) {
             JOptionPane.showMessageDialog(this, "Selecione um look primeiro!");
             return;
         }
-        
-        java.util.List<Item> itensSelecionados = listaItensDisponiveis.getSelectedValuesList();
-        if (itensSelecionados.isEmpty()) {
+        java.util.List<Item> selecionados = listaItensDisponiveis.getSelectedValuesList();
+        if (selecionados.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Selecione pelo menos um item!");
             return;
         }
-        
-        for (Item item : itensSelecionados) {
-            lookSelecionado.adicionarItem(item);
-        }
-        
+        selecionados.forEach(lookSelecionado::adicionarItem);
         gestor.modificarLook(lookSelecionado);
         carregarLooks();
         JOptionPane.showMessageDialog(this, "Itens adicionados ao look!");
     }
-    
+
     private void registrarUsoLook() {
         if (lookSelecionado == null) {
             JOptionPane.showMessageDialog(this, "Selecione um look primeiro!");
             return;
         }
-        
-        JPanel panel = new JPanel(new GridLayout(3, 2));
-        JTextField txtData = new JTextField(LocalDate.now().toString());
+        JPanel panel = new JPanel(new GridLayout(3, 2, 4, 4));
+        JTextField txtData  = new JTextField(LocalDate.now().toString());
         JComboBox<String> cbPeriodo = new JComboBox<>(new String[]{"Manhã", "Tarde", "Noite"});
         JTextField txtOcasiao = new JTextField();
-        
-        panel.add(new JLabel("Data (YYYY-MM-DD):"));
-        panel.add(txtData);
-        panel.add(new JLabel("Período:"));
-        panel.add(cbPeriodo);
-        panel.add(new JLabel("Ocasião:"));
-        panel.add(txtOcasiao);
-        
-        int result = JOptionPane.showConfirmDialog(this, panel, "Registrar Uso do Look", 
-                                                  JOptionPane.OK_CANCEL_OPTION);
-        
-        if (result == JOptionPane.OK_OPTION) {
+
+        panel.add(new JLabel("Data (YYYY-MM-DD):")); panel.add(txtData);
+        panel.add(new JLabel("Período:"));           panel.add(cbPeriodo);
+        panel.add(new JLabel("Ocasião:"));           panel.add(txtOcasiao);
+
+        if (JOptionPane.showConfirmDialog(this, panel, "Registrar Uso",
+                JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
             try {
-                LocalDate data = LocalDate.parse(txtData.getText());
-                String periodo = (String) cbPeriodo.getSelectedItem();
-                String ocasiao = txtOcasiao.getText();
-                
-                lookSelecionado.registrarUtilizacao(data, periodo, ocasiao);
+                lookSelecionado.registrarUtilizacao(
+                        LocalDate.parse(txtData.getText()),
+                        (String) cbPeriodo.getSelectedItem(),
+                        txtOcasiao.getText());
                 gestor.modificarLook(lookSelecionado);
                 carregarLooks();
-                JOptionPane.showMessageDialog(this, "Uso registrado com sucesso!");
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, "Erro ao registrar uso: " + e.getMessage());
+                JOptionPane.showMessageDialog(this, "Uso registrado!");
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Erro: " + ex.getMessage());
             }
         }
     }
-    
+
     private void selecionarLook() {
-        int selectedRow = tabelaLooks.getSelectedRow();
-        if (selectedRow >= 0) {
-            String id = (String) modeloTabela.getValueAt(selectedRow, 0);
+        int row = tabelaLooks.getSelectedRow();
+        if (row >= 0) {
+            String id = (String) modeloTabela.getValueAt(row, 0);
             lookSelecionado = gestor.buscarLook(id);
         }
     }
-    
+
     private void removerLook() {
-        int selectedRow = tabelaLooks.getSelectedRow();
-        if (selectedRow >= 0) {
-            String id = (String) modeloTabela.getValueAt(selectedRow, 0);
-            int confirm = JOptionPane.showConfirmDialog(this, 
-                "Tem certeza que deseja remover este look?", 
-                "Confirmar Remoção", 
-                JOptionPane.YES_NO_OPTION);
-            
-            if (confirm == JOptionPane.YES_OPTION) {
-                gestor.removerLook(id);
-                carregarLooks();
-                lookSelecionado = null;
-                JOptionPane.showMessageDialog(this, "Look removido com sucesso!");
-            }
-        } else {
-            JOptionPane.showMessageDialog(this, "Selecione um look para remover!");
+        int row = tabelaLooks.getSelectedRow();
+        if (row < 0) { JOptionPane.showMessageDialog(this, "Selecione um look."); return; }
+        if (JOptionPane.showConfirmDialog(this, "Remover look selecionado?", "Confirmar",
+                JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+            gestor.removerLook((String) modeloTabela.getValueAt(row, 0));
+            lookSelecionado = null;
+            carregarLooks();
         }
     }
-    
+
     private void verDetalhesLook() {
         if (lookSelecionado == null) {
-            JOptionPane.showMessageDialog(this, "Selecione um look primeiro!");
+            JOptionPane.showMessageDialog(this, "Selecione um look.");
             return;
         }
-        
-        StringBuilder detalhes = new StringBuilder();
-        detalhes.append("Look: ").append(lookSelecionado.getNome()).append("\n\n");
-        detalhes.append("Itens:\n");
-        
-        for (Item item : lookSelecionado.getItens().values()) {
-            detalhes.append("- ").append(item.getNome())
-                   .append(" (").append(item.getCor()).append(")\n");
-        }
-        
-        detalhes.append("\nUtilizações:\n");
-        for (Look.UtilizacaoLook uso : lookSelecionado.getUtilizacoes()) {
-            detalhes.append("- ").append(uso.toString()).append("\n");
-        }
-        
-        JTextArea textArea = new JTextArea(detalhes.toString());
-        textArea.setEditable(false);
-        JScrollPane scrollPane = new JScrollPane(textArea);
-        scrollPane.setPreferredSize(new Dimension(400, 300));
-        
-        JOptionPane.showMessageDialog(this, scrollPane, "Detalhes do Look", 
-                                    JOptionPane.INFORMATION_MESSAGE);
+        StringBuilder sb = new StringBuilder();
+        sb.append("Look: ").append(lookSelecionado.getNome()).append("\n\nItens:\n");
+        lookSelecionado.getItens().values().forEach(i ->
+                sb.append("  - ").append(i.getNome()).append(" (").append(i.getCor()).append(")\n"));
+        sb.append("\nUtilizações:\n");
+        lookSelecionado.getUtilizacoes().forEach(u ->
+                sb.append("  - ").append(u).append("\n"));
+
+        JTextArea ta = new JTextArea(sb.toString());
+        ta.setEditable(false);
+        JScrollPane sp = new JScrollPane(ta);
+        sp.setPreferredSize(new Dimension(420, 300));
+        JOptionPane.showMessageDialog(this, sp, "Detalhes do Look", JOptionPane.INFORMATION_MESSAGE);
     }
-    
+
     private void carregarDados() {
-        carregarItensDisponiveis();
+        modeloListaItens.clear();
+        gestor.listarItens().forEach(modeloListaItens::addElement);
         carregarLooks();
     }
-    
-    private void carregarItensDisponiveis() {
-        modeloListaItens.clear();
-        for (Item item : gestor.listarItens()) {
-            modeloListaItens.addElement(item);
-        }
-    }
-    
+
     private void carregarLooks() {
         modeloTabela.setRowCount(0);
-        for (Look look : gestor.listarLooks()) {
-            Object[] row = {
-                look.getId(),
-                look.getNome(),
-                look.getItens().size(),
-                look.getQuantidadeUtilizacoes()
-            };
-            modeloTabela.addRow(row);
-        }
+        gestor.listarLooks().forEach(l -> modeloTabela.addRow(new Object[]{
+                l.getId(), l.getNome(), l.getItens().size(), l.getQuantidadeUtilizacoes()
+        }));
     }
 }
