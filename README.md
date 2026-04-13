@@ -1,4 +1,4 @@
-# 👗 ClosetFlow
+# ClosetFlow
 
 > Aplicação desktop em Java para organizar e acompanhar o seu guarda-roupa de forma inteligente.
 
